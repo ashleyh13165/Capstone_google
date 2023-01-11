@@ -14,6 +14,6 @@ I will be using the public dataset located at https://divvy-tripdata.s3.amazonaw
 The buisness task I am trying to accomplish here is to find the different ways the Member and Casual riders use the bike sharing and find a way to convert casual riders to members.
 The first step I needed to take was downloading the data and storing it. I download January 2021 to december 2021 and put it in a folder named Trip Data.
 I used RStudio on the desktop to clean my data because some months were to big to upload to google sheets and I prefer teh data cleaning tools along with the visuals teh program offers.
-I have included all teh steps I took on R to clean and analys the data in my .
+I have included all the steps I took on R to clean and analys the data in my cycle_capston.R file. This also has the steps for my visuals.
 
 
