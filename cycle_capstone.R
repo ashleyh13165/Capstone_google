@@ -1,14 +1,23 @@
-#I
+#To start we need to instal the packages from R that we will need.
+
 install.packages('tidyverse')
 install.packages('janitor')
 install.packages('lubridate')
+install.packages('ggplot2')
+install.packages('readr')
+install.packages('dplyr')
+install.packages('ggplot2')
 
-#Load the packages
+#Next we need to load them by using the Library funtion
 library(tidyverse)
 library(janitor)
 library(lubridate)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(ggplot2)
 
-#import the data from my dektop to RStudio
+#Now I need to upload my data files for my computer to R
 `2021.01.td` <- read.csv("C:/Users/ashle/OneDrive/Desktop/bike_trip_data/2021.01.td.csv")
 `2021.02.td` <- read.csv("C:/Users/ashle/OneDrive/Desktop/bike_trip_data/2021.02.td.csv")
 `2021.03.td` <- read.csv("C:/Users/ashle/OneDrive/Desktop/bike_trip_data/2021.03.td.csv")
@@ -22,8 +31,8 @@ library(lubridate)
 `2021.11.td` <- read.csv("C:/Users/ashle/OneDrive/Desktop/bike_trip_data/2021.11.td.csv")
 `2021.12.td` <- read.csv("C:/Users/ashle/OneDrive/Desktop/bike_trip_data/2021.12.td.csv")
 
-#renaming data to make it easier to identify
 
+#Now I am going to rename the files to make it easier to know what they are.
 Jan2021 <-`2021.01.td`
 Feb2021 <-`2021.02.td`
 Mar2021 <-`2021.03.td`
@@ -37,7 +46,7 @@ Oct2021<-`2021.10.td`
 Nov2021<-`2021.11.td`
 Dec2021<-`2021.12.td`
 
-#str(dataset_name)
+#Now I check to make sure all the data is formatted proprtly.
 str(Jan2021)
 str(Feb2021)
 str(Mar2021)
@@ -51,93 +60,51 @@ str(Oct2021)
 str(Nov2021)
 str(Dec2021)
 
-#Creating a new dataset name <- binding rows(all_your_datasets)
+#Now I am going to take all of my data frames and combine them using bind_row to make a new data frame and name it.
 ride_2021 <- bind_rows(Jan2021, Feb2021, Mar2021, April2021, May2021, June2021, July2021, Aug2021, Sep2021, Oct2021, Nov2021, Dec2021)
                       
-#Cleaning the names.
-ride_2021 <- clean_names(merged_df)
-
-#use removing_empty(dataset_name, by leaving c() empty, it selects rows & columns) to remove any empty spaces
-remove_empty(ride_2021, which = c())
-
-#What wday() doesis extract DAY from the Dataframe with the date format
-
-#df_name$your_new_column_name <- wday(df_name$select_column, label = T/F, abbr = T/F)
+#Next I am going to use wday to show what day of the week each tip was made on.
 ride_2021$day_of_week <- wday(ride_2021$started_at, label = T, abbr = T)
 
-#What POSIXct does is extracts a certain TIME HOUR FORMAT from an Dataframe
-
-#df_name$your_new_column_name <- format(as.POSIXct(df_name$select_column, '%time_format')
-ride_2021$starting_hour <- format(as.POSIXct(ride_2021$started_at), '%H')
-
-#To convert one datatype into another we used format(). This has to be used with datatypes/date formats.Using as.Date () extracts the DATE from the Dataframe  with the date format. Used in format()
-
-#df_name$your_new_column_name <- format(as.Date(df_name$select_column), '%date_format')
+#Next I am going to make a new column for what month each ride took place.
 ride_2021$month <- format(as.Date(ride_2021$started_at), '%m')
 
-# In a Dataframe difftime() calculates the time difference between one column and another with a date format.
+#Next I am going to make a new column for the hour that the trip started
+ride_2021$starting_hour <- format(as.POSIXct(ride_2021$started_at), '%H')
 
-#df_name$your_new_column_name <- difftime(df_name$usually_end_time_column, df_name$usually_start_time_column, units = 'your_desired_unit')
+#Now I am going to figure out the trip durations.
 ride_2021$trip_duration <- difftime(ride_2021$ended_at, ride_2021$started_at, units ='sec')
 
-#Here i will take the merged_df and make a new dataframe named cleaned_df that does not contain any trip_durations of 0 seconds or less. '!' means is not equals to
+#Now I will make a new data frame for all the cleaned data.I will also be taking any trips that were 0 seconds or less out of that data frame.
+ride_2021<- ride_2021[!(ride_2021$trip_duration<=0),]
 
-cleaned_ride_2021 <- ride_2021[!(ride_2021$trip_duration<=0),]
-
-# Here we will be displayed alongside the x- axis.I will use the (position = 'dodge') which will inform the 2nd value (in this case member type) to 'dodge' and not stack ontop. 
+#Now I am going to remove any blanks from the start station name and end station name.
 
 ride_2021 <- ride_2021 %>%
   filter(
     !(is.na(start_station_name) |
-        start_station_name == "")
-  ) %>% 
+        start_station_name == "")) %>% 
   
   filter(
     !(is.na(end_station_name) |
-        end_station_name == "")
-  )
+        end_station_name == ""))
 
+#Here I am making sure there are no duplicutes in my clean data by running a ride_id_check.
 ride_id_check <- ride_2021 %>%
   count(ride_id) %>%
   filter(n > 1)
 
 
-fwrite(
- ride_2021, 
-  "C:\\Users\\ashle\\Documents\\bike_trip_data.csv", 
-  col.names = TRUE,
-  row.names = FALSE
-)
+#Next I am going to start my graphs to show the two types of riders, casual and member. I will have one for rides per day of the week and one for rides per month. 
+#The first graph is days of the week.
 options(scipen = 999)
 ggplot(data = ride_2021) +
   aes(x = day_of_week, fill = member_casual) +
   geom_bar(position = 'dodge') +
-  labs(x = 'Day of week', y = 'Number of rides', fill = 'Member type', title = 'Number of rides by member type',subtitle = 'One week of rides')+
-ggsave("number_of_rides_by_member_type.png")
+  labs(x = 'Day of week', y = 'Number of rides', fill = 'Member type', title = 'Number of rides by member type',subtitle = 'One week of rides')
 
+#This second graph is ride numbers by month of the year
 ggplot(data=ride_2021)+
   aes(x=month,fill=member_casual) +
   geom_bar(position = 'dodge')+
   labs(title= 'Number of rides a month shown by rider type')
-
-ggsave("number_of_rides_monthly_by_type.png")
-
-
-
-
-
-#count will let you count, group & sort the unique values from a dataframe
-#filter just filters out data that meets (==) or does not meet(!=) the requirement
-
-                        
-annaul_member_2021 <- filter(ride_2021, member_casual=='member')
-count(annual_member_2021, start_station_name, sort = T)
-count(annual_member_2021, end_station_name, sort = T)
-              
-casual_member_2021 <- filter(ride_2021, member_casual=='casual')
-count(casual_member_2021, start_station_name, sort = T)
-count(casual_member_2021, end_station_name, sort = T)
-                        
-
-
-                       
